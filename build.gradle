@@ -1,0 +1,68 @@
+apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'groovy'
+apply plugin: 'application'
+
+
+group = 'org.javameetup'
+artifactId='storm'
+version = '0.0.1-SNAPSHOT'
+
+applicationName= "HashTagCounter"
+
+repositories {
+    mavenCentral()
+	maven {
+	        url "http://clojars.org/repo"
+	    }
+
+    
+}
+
+// exclude storm jar from jar assembly
+configurations {
+    storm
+    compile.extendsFrom storm
+}
+
+jar {
+    archiveName "CPStorm-${version}.jar"
+    dependsOn configurations.runtime
+    from {
+        (configurations.runtime - configurations.storm).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}
+mainClassName="HashTagCountTopology"
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from 'build/docs/javadoc'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+compileJava.enabled = false
+	sourceSets {
+		main {
+
+			groovy {
+				srcDir 'src/main/java'
+
+			}
+		}
+		test {
+			groovy {
+				srcDir 'src/test/java'
+			}
+		}
+	}
+
+dependencies {
+    storm 'storm:storm:0.8.2'
+}
